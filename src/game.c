@@ -16,7 +16,7 @@
 struct deck *deck;
 struct cursor *cursor;
 
-static int foundation_begin_x(int x) {
+int foundation_begin_x(int x) {
   switch (x) {
   case 0:
     return (FOUNDATION_0_BEGIN_X);
@@ -33,7 +33,7 @@ static int foundation_begin_x(int x) {
   }
 }
 
-static int maneuvre_begin_x(int x) {
+int maneuvre_begin_x(int x) {
   switch (x) {
   case 0:
     return (MANEUVRE_0_BEGIN_X);

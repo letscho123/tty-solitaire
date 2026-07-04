@@ -9,6 +9,7 @@
 #include "cursor.h"
 #include "gui.h"
 #include "common.h"
+#include "undo.h"
 
 static void handle_term_resize(void) {
   clear();
@@ -157,14 +158,21 @@ static void handle_card_movement(struct cursor *cursor) {
             for (int i = 1; i < _marked_cards_count; block = block->next, i++)
               ;
             if (valid_move(block, *destination)) {
+              int orig_id = get_stack_id(*origin);
+              int dest_id = get_stack_id(*destination);
               move_block(origin, destination, _marked_cards_count);
+              undo_push(UNDO_MOVE_BLOCK, orig_id, dest_id,
+                        _marked_cards_count);
             }
           } else {
             if (valid_move(*origin, *destination)) {
+              int orig_id = get_stack_id(*origin);
+              int dest_id = get_stack_id(*destination);
               if (maneuvre_stack(*destination)) {
                 cursor->y++;
               }
               move_card(origin, destination);
+              undo_push(UNDO_MOVE_CARD, orig_id, dest_id, 0);
             }
           }
 
@@ -174,7 +182,9 @@ static void handle_card_movement(struct cursor *cursor) {
             for (int i = 0; i <= 3; ++i) {
               destination = (&(deck->foundation[i]));
               if (valid_move(*origin, *destination)) {
+                int orig_id = get_stack_id(*origin);
                 move_card(origin, destination);
+                undo_push(UNDO_AUTO_MOVE_FOUNDATION, orig_id, i + 2, 0);
                 break;
               }
             }
@@ -244,19 +254,25 @@ void keyboard_event(int key) {
       if (cursor_on_stock(cursor)) {
         if (stack_empty(deck->stock)) {
           if (game.passes_through_deck_left >= 1) {
+            int waste_count = stack_length(deck->waste_pile);
             while (!stack_empty(deck->waste_pile)) {
               move_card(&(deck->waste_pile), &(deck->stock));
               card_cover(deck->stock->card);
+            }
+            if (waste_count > 0) {
+              undo_push(UNDO_RECYCLE_WASTE, 1, 0, waste_count);
             }
             draw_stack(deck->stock);
             draw_stack(deck->waste_pile);
           }
         } else {
+          int passes_decremented = (stack_length(deck->stock) == 1);
           move_card(&(deck->stock), &(deck->waste_pile));
           if (stack_empty(deck->stock)) {
             game.passes_through_deck_left--;
           }
           card_expose(deck->waste_pile->card);
+          undo_push(UNDO_DRAW_STOCK, 0, 1, passes_decremented);
           erase_stack(deck->waste_pile);
           draw_stack(deck->stock);
           draw_stack(deck->waste_pile);
@@ -265,12 +281,17 @@ void keyboard_event(int key) {
         struct card *card;
         if (cursor_stack(cursor) &&
               (card = (*cursor_stack(cursor))->card)->face == COVERED) {
+          int stack_id = get_stack_id(*cursor_stack(cursor));
           card_expose(card);
+          undo_push(UNDO_EXPOSE_CARD, stack_id, -1, 0);
           draw_card(card);
         } else {
           handle_card_movement(cursor);
         }
       }
+      break;
+    case 'u':
+      undo_last_move();
       break;
     case KEY_RESIZE:
       handle_term_resize();

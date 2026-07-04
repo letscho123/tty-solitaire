@@ -27,6 +27,7 @@ SRC_OBJECTS = $(SRC_DIR)/common.o   \
               $(SRC_DIR)/keyboard.o \
               $(SRC_DIR)/gui.o      \
               $(SRC_DIR)/game.o     \
+              $(SRC_DIR)/undo.o     \
 
 TESTS_EXECUTABLE = ttysolitaire_test
 TESTS_DIR        = tests

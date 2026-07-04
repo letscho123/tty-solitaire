@@ -161,6 +161,7 @@ static void handle_card_movement(struct cursor *cursor) {
               int orig_id = get_stack_id(*origin);
               int dest_id = get_stack_id(*destination);
               move_block(origin, destination, _marked_cards_count);
+              expose_top(origin);
               undo_push(UNDO_MOVE_BLOCK, orig_id, dest_id,
                         _marked_cards_count);
             }
@@ -172,6 +173,7 @@ static void handle_card_movement(struct cursor *cursor) {
                 cursor->y++;
               }
               move_card(origin, destination);
+              expose_top(origin);
               undo_push(UNDO_MOVE_CARD, orig_id, dest_id, 0);
             }
           }

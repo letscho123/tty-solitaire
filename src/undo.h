@@ -1,6 +1,8 @@
 #ifndef TTY_SOLITAIRE_UNDO_H
 #define TTY_SOLITAIRE_UNDO_H
 
+#include <stdbool.h>
+
 #include "game.h"
 
 enum undo_type {
@@ -19,6 +21,7 @@ struct undo_entry {
   int origin_id;
   int dest_id;
   int block_size;
+  bool auto_exposed;
 };
 
 struct undo_history {
@@ -28,7 +31,7 @@ struct undo_history {
 
 extern struct undo_history undo_history;
 
-void undo_push(enum undo_type, int, int, int);
+void undo_push(enum undo_type, int, int, int, bool);
 void undo_last_move(void);
 int get_stack_id(struct stack *);
 struct stack **stack_by_id(int);

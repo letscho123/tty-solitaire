@@ -163,7 +163,7 @@ static void handle_card_movement(struct cursor *cursor) {
               move_block(origin, destination, _marked_cards_count);
               expose_top(origin);
               undo_push(UNDO_MOVE_BLOCK, orig_id, dest_id,
-                        _marked_cards_count);
+                        _marked_cards_count, true);
             }
           } else {
             if (valid_move(*origin, *destination)) {
@@ -174,7 +174,7 @@ static void handle_card_movement(struct cursor *cursor) {
               }
               move_card(origin, destination);
               expose_top(origin);
-              undo_push(UNDO_MOVE_CARD, orig_id, dest_id, 0);
+              undo_push(UNDO_MOVE_CARD, orig_id, dest_id, 0, true);
             }
           }
 
@@ -186,7 +186,7 @@ static void handle_card_movement(struct cursor *cursor) {
               if (valid_move(*origin, *destination)) {
                 int orig_id = get_stack_id(*origin);
                 move_card(origin, destination);
-                undo_push(UNDO_AUTO_MOVE_FOUNDATION, orig_id, i + 2, 0);
+                undo_push(UNDO_AUTO_MOVE_FOUNDATION, orig_id, i + 2, 0, false);
                 break;
               }
             }
@@ -262,7 +262,7 @@ void keyboard_event(int key) {
               card_cover(deck->stock->card);
             }
             if (waste_count > 0) {
-              undo_push(UNDO_RECYCLE_WASTE, 1, 0, waste_count);
+              undo_push(UNDO_RECYCLE_WASTE, 1, 0, waste_count, false);
             }
             draw_stack(deck->stock);
             draw_stack(deck->waste_pile);
@@ -274,7 +274,7 @@ void keyboard_event(int key) {
             game.passes_through_deck_left--;
           }
           card_expose(deck->waste_pile->card);
-          undo_push(UNDO_DRAW_STOCK, 0, 1, passes_decremented);
+          undo_push(UNDO_DRAW_STOCK, 0, 1, passes_decremented, false);
           erase_stack(deck->waste_pile);
           draw_stack(deck->stock);
           draw_stack(deck->waste_pile);
@@ -285,7 +285,7 @@ void keyboard_event(int key) {
               (card = (*cursor_stack(cursor))->card)->face == COVERED) {
           int stack_id = get_stack_id(*cursor_stack(cursor));
           card_expose(card);
-          undo_push(UNDO_EXPOSE_CARD, stack_id, -1, 0);
+          undo_push(UNDO_EXPOSE_CARD, stack_id, -1, 0, false);
           draw_card(card);
         } else {
           handle_card_movement(cursor);

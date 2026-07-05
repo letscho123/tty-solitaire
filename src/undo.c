@@ -47,13 +47,14 @@ struct stack **stack_by_id(int id) {
 }
 
 void undo_push(enum undo_type type, int origin_id, int dest_id,
-               int block_size) {
+               int block_size, bool auto_exposed) {
   if (undo_history.count >= MAX_UNDO_DEPTH) return;
   struct undo_entry *entry = &undo_history.entries[undo_history.count++];
   entry->type = type;
   entry->origin_id = origin_id;
   entry->dest_id = dest_id;
   entry->block_size = block_size;
+  entry->auto_exposed = auto_exposed;
 }
 
 void undo_last_move(void) {
@@ -113,6 +114,9 @@ void undo_last_move(void) {
     erase_stack(*origin);
     erase_stack(*dest);
     move_card(dest, origin);
+    if (entry->auto_exposed && maneuvre_stack(*origin) && (*origin)->next) {
+      card_cover((*origin)->next->card);
+    }
     draw_stack(*origin);
     draw_stack(*dest);
     break;
@@ -123,6 +127,15 @@ void undo_last_move(void) {
     erase_stack(*origin);
     erase_stack(*dest);
     move_block(dest, origin, entry->block_size);
+    if (entry->auto_exposed && maneuvre_stack(*origin)) {
+      struct stack *s = *origin;
+      for (int i = 0; i < entry->block_size && s; i++) {
+        s = s->next;
+      }
+      if (s) {
+        card_cover(s->card);
+      }
+    }
     draw_stack(*origin);
     draw_stack(*dest);
     break;

@@ -160,21 +160,23 @@ static void handle_card_movement(struct cursor *cursor) {
             if (valid_move(block, *destination)) {
               int orig_id = get_stack_id(*origin);
               int dest_id = get_stack_id(*destination);
+              bool will_expose = block->next && block->next->card->face == COVERED;
               move_block(origin, destination, _marked_cards_count);
               expose_top(origin);
               undo_push(UNDO_MOVE_BLOCK, orig_id, dest_id,
-                        _marked_cards_count, true);
+                        _marked_cards_count, will_expose);
             }
           } else {
             if (valid_move(*origin, *destination)) {
               int orig_id = get_stack_id(*origin);
               int dest_id = get_stack_id(*destination);
+              bool will_expose = (*origin)->next && (*origin)->next->card->face == COVERED;
               if (maneuvre_stack(*destination)) {
                 cursor->y++;
               }
               move_card(origin, destination);
               expose_top(origin);
-              undo_push(UNDO_MOVE_CARD, orig_id, dest_id, 0, true);
+              undo_push(UNDO_MOVE_CARD, orig_id, dest_id, 0, will_expose);
             }
           }
 
@@ -185,8 +187,10 @@ static void handle_card_movement(struct cursor *cursor) {
               destination = (&(deck->foundation[i]));
               if (valid_move(*origin, *destination)) {
                 int orig_id = get_stack_id(*origin);
+                bool will_expose = (*origin)->next && (*origin)->next->card->face == COVERED;
                 move_card(origin, destination);
-                undo_push(UNDO_AUTO_MOVE_FOUNDATION, orig_id, i + 2, 0, false);
+                expose_top(origin);
+                undo_push(UNDO_AUTO_MOVE_FOUNDATION, orig_id, i + 2, 0, will_expose);
                 break;
               }
             }

@@ -146,6 +146,9 @@ void undo_last_move(void) {
     erase_stack(*origin);
     erase_stack(*dest);
     move_card(dest, origin);
+    if (entry->auto_exposed && maneuvre_stack(*origin) && (*origin)->next) {
+      card_cover((*origin)->next->card);
+    }
     draw_stack(*origin);
     draw_stack(*dest);
     break;
